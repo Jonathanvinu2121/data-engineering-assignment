@@ -63,9 +63,12 @@ The script checks that exactly one CSV URL is provided and verifies that the CSV
 
 ### Assumptions
 
-The script expects the CSV to contain the required company, location, and founding year fields in the expected column structure.
+The script expects the CSV to follow the column structure of the input dataset,
+with the company name in column 2, headquarters location in column 5, and
+founding year in column 8.
 
-For founding-year values containing additional information, the first four-digit year is used.
+For founding-year values containing additional information, the first
+four-digit year is used.
 
 ## Output
 
