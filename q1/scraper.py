@@ -1,10 +1,18 @@
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import quote_plus
 
+search_term = input("Enter search term: ")
 
-url = "https://mdcomputers.in/?route=product%2Fsearch&search=external+hard+drive"
+encoded_term = quote_plus(search_term)
+
+url = f"https://mdcomputers.in/?route=product%2Fsearch&search={encoded_term}"
+
 
 response = requests.get(url)
 
-print(response.status_code)
-print(response.text[:500])
+print("Status:", response.status_code)
+
+soup = BeautifulSoup(response.text, "html.parser")
+
+print(soup.title.text)
