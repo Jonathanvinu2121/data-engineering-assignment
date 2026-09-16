@@ -9,7 +9,8 @@ def build_search_url(search_term):
 
 
 def fetch_page(url):
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
     return response.text
 
 
@@ -21,17 +22,16 @@ def extract_products(html):
     results = []
 
     for product in products:
-        name = product.select_one(
-            ".product-entities-title a"
-        ).get_text(strip=True)
+        name_element = product.select_one(".product-entities-title a")
+        price_element = product.select_one(".price .ins .amount")
+        url_element = product.select_one(".product-image-link")
 
-        url = product.select_one(
-            ".product-image-link"
-        )["href"]
+        if not name_element or not price_element or not url_element:
+            continue
 
-        price = product.select_one(
-            ".price .ins .amount"
-        ).get_text(strip=True)
+        name = name_element.get_text(strip=True)
+        price = price_element.get_text(strip=True)
+        url = url_element["href"]
 
         results.append({
             "name": name,
@@ -43,13 +43,25 @@ def extract_products(html):
 
 
 def main():
-    search_term = input("Enter search term: ")
+    search_term = input("Enter search term: ").strip()
+
+    if not search_term:
+        print("Search term cannot be empty.")
+        return
 
     url = build_search_url(search_term)
 
-    html = fetch_page(url)
+    try:
+        html = fetch_page(url)
+    except requests.RequestException as exc:
+        print(f"Failed to fetch search results: {exc}")
+        return
 
     products = extract_products(html)
+
+    if not products:
+        print("No products found.")
+        return
 
     print("Products found:", len(products))
 
