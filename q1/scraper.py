@@ -15,4 +15,8 @@ print("Status:", response.status_code)
 
 soup = BeautifulSoup(response.text, "html.parser")
 
+products = soup.select(".product-grid-item")
+
+print("Products found:", len(products))
+
 print(soup.title.text)
