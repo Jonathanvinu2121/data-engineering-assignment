@@ -3,30 +3,62 @@ from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 
 
-search_term = input("Enter search term: ")
+def build_search_url(search_term):
+    encoded_term = quote_plus(search_term)
+    return f"https://mdcomputers.in/?route=product%2Fsearch&search={encoded_term}"
 
-encoded_term = quote_plus(search_term)
 
-url = f"https://mdcomputers.in/?route=product%2Fsearch&search={encoded_term}"
+def fetch_page(url):
+    response = requests.get(url)
+    return response.text
 
-response = requests.get(url)
 
-print("Status:", response.status_code)
+def extract_products(html):
+    soup = BeautifulSoup(html, "html.parser")
 
-soup = BeautifulSoup(response.text, "html.parser")
+    products = soup.select(".product-grid-item")
 
-print(soup.title.text)
+    results = []
 
-products = soup.select(".product-grid-item")
+    for product in products:
+        name = product.select_one(
+            ".product-entities-title a"
+        ).get_text(strip=True)
 
-print("Products found:", len(products))
+        url = product.select_one(
+            ".product-image-link"
+        )["href"]
 
-for product in products:
-    name = product.select_one(".product-entities-title a").get_text(strip=True)
-    url = product.select_one(".product-image-link")["href"]
-    price = product.select_one(".price .ins .amount").get_text(strip=True)
+        price = product.select_one(
+            ".price .ins .amount"
+        ).get_text(strip=True)
 
-    print("Name:", name)
-    print("Price:", price)
-    print("URL:", url)
-    print()
+        results.append({
+            "name": name,
+            "price": price,
+            "url": url
+        })
+
+    return results
+
+
+def main():
+    search_term = input("Enter search term: ")
+
+    url = build_search_url(search_term)
+
+    html = fetch_page(url)
+
+    products = extract_products(html)
+
+    print("Products found:", len(products))
+
+    for product in products:
+        print("Name:", product["name"])
+        print("Price:", product["price"])
+        print("URL:", product["url"])
+        print()
+
+
+if __name__ == "__main__":
+    main()
